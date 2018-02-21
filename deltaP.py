@@ -12,6 +12,7 @@ import numpy as np
 
 db = './../data/daf06fb3ab69f27bd681a63311722181.db'
 db = './test.db'
+db = '../data/disaggregation.db'
 
 conn = sqlite3.connect(db)
 df = pd.read_sql_query("SELECT * FROM loadsonly;", conn)
@@ -129,8 +130,8 @@ for x in range(1,len(df)):
         print('found profile from ',df.loc[x-1,'datetime'],'to',df.loc[y,'datetime'])
         profile = list(df.loc[x-1:y,'unknown']-df.loc[x-1,'unknown'])
         print(profile)
-        
-        
+        start = str(df.loc[x-1,'datetime'])
+        stop = str(df.loc[y,'datetime'])
 #         plt.plot(range(x,y),profile)
 #         plt.title('A simple chirp')
 #         plt.show()
@@ -162,6 +163,11 @@ for x in range(1,len(df)):
         df.loc[x:y-1,fingerprint] = profile[1:-1]
         df.loc[x:y-1,'unknown'] = df.loc[x:y-1,'unknown'] - profile[1:-1]
         print('Saved with fingerprint:',fingerprint)
+        print("INSERT INTO `devices` (name,power,energy,first_datetime,last_datetime) VALUES ('"+fingerprint+"','"+str(mean)+"','"+str(mean*time/3600)+"','"+start+"','"+stop+"');")
+        conn = sqlite3.connect(db)
+        df = pd.read_sql_query("INSERT INTO `devices` (name,power,energy,first_datetime,last_datetime) VALUES ('"+fingerprint+"','"+mean+"','"+round(mean*time/3600,0)+"','"+start+"','"+stop+"');", conn)
+        conn.close()# close db
+        
 
 
 
