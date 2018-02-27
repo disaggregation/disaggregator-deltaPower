@@ -15,7 +15,7 @@ db = './test.db'
 db = '../data/disaggregation.db'
 
 conn = sqlite3.connect(db)
-df = pd.read_sql_query("SELECT * FROM loadsonly;", conn)
+df = pd.read_sql_query("SELECT date as 'datetime', demand_power_L3 as 'demand' FROM loads ORDER BY date desc LIMIT 3600;", conn)
 conn.close()# close db
 
 df['datetime'] = pd.to_datetime(df['datetime'])
@@ -163,10 +163,18 @@ for x in range(1,len(df)):
         df.loc[x:y-1,fingerprint] = profile[1:-1]
         df.loc[x:y-1,'unknown'] = df.loc[x:y-1,'unknown'] - profile[1:-1]
         print('Saved with fingerprint:',fingerprint)
-        print("INSERT INTO `devices` (name,power,energy,first_datetime,last_datetime) VALUES ('"+fingerprint+"','"+str(mean)+"','"+str(mean*time/3600)+"','"+start+"','"+stop+"');")
+        print("INSERT INTO `devices` (author_id,name,power,first_datetime,last_datetime) VALUES (0,'"+fingerprint+"','"+str(mean)+"','"+start+"','"+stop+"');")
         conn = sqlite3.connect(db)
-        df = pd.read_sql_query("INSERT INTO `devices` (name,power,energy,first_datetime,last_datetime) VALUES ('"+fingerprint+"','"+mean+"','"+round(mean*time/3600,0)+"','"+start+"','"+stop+"');", conn)
-        conn.close()# close db
+        c = conn.cursor()
+
+        sql = '''CREATE TABLE loads (date datetime, lowtarif_demand real, hightarif_demand real, 
+                                    lowtarif_supply real, hightarif_supply real, demand_power real, 
+                                    supply_power real, gas_demand real, demand_power_L1 real, 
+                                    demand_power_L2 real, demand_power_L3 real, supply_power_L1 real,
+                                    supply_power_L2 real, supply_power_L3 real, voltage real, current real)'''
+        c.execute("INSERT INTO `devices` (author_id,name,power,first_datetime,last_datetime) VALUES (0,'"+fingerprint+"','"+str(mean)+"','"+start+"','"+stop+"');")
+        conn.commit()
+        conn.close() #close db
         
 
 
