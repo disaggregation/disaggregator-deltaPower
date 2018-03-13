@@ -11,12 +11,21 @@ import numpy as np
 
 
 db = './../data/daf06fb3ab69f27bd681a63311722181.db'
-db = './test.db'
+#db = './test.db'
 db = '../data/disaggregation.db'
 
 conn = sqlite3.connect(db)
 df = pd.read_sql_query("SELECT date as 'datetime', demand_power_L3 as 'demand' FROM loads ORDER BY date desc LIMIT 3600;", conn)
 conn.close()# close db
+    
+csvfile = "../data/liIionbattery_corrected.csv"
+data = pd.read_csv(csvfile)
+print(data)
+#data['datetime'] = pd.to_datetime(data['datetime'])
+#data.set_index('datetime', inplace = True)
+  
+df['datetime'] = pd.to_datetime(df['datetime'])
+df.sort_values(by='datetime',ascending=True);
 
 df['datetime'] = pd.to_datetime(df['datetime'])
 df.sort_values(by='datetime',ascending=True);
